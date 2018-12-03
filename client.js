@@ -15,4 +15,12 @@ form.addEventListener('submit', () => {
   console.log(mew);
   form.style.display = 'none';
   loading.style.display = '';
+  fetch('http://localhost:5000/mews?origin=*', {
+    method: 'POST',
+
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8'
+    },
+    body: JSON.stringify(mew)
+  });
 });
