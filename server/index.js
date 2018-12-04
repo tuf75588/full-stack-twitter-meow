@@ -2,7 +2,10 @@ const express = require('express');
 const morgan = require('morgan');
 const app = express();
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const monk = require('monk');
+const db = monk('localhost/Meower-Application');
+const mews = db.get('mews');
+
 app.use(express.json());
 app.use(cors());
 app.use(morgan('combined'));
@@ -12,7 +15,27 @@ app.get('/', (req, res) => {
   });
 });
 
+function isValidMew(mew) {
+  return mew.name && mew.name.toString().trim() !== '' && mew.content && mew.content.toString().trim() !== '';
+}
+
 app.post('/mews', (req, res) => {
+  if (isValidMew(req.body)) {
+    //insert into db
+    const mew = {
+      name: req.body.name.toString(),
+      content: req.body.content.toString(),
+      created: new Date()
+    };
+    mews.insert(mew).then((createdMew) => {
+      res.json(createdMew);
+    });
+  } else {
+    res.state(422);
+    res.json({
+      message: 'Hey! Name and content are required!'
+    });
+  }
   console.log(req.body);
 });
 

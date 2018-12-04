@@ -12,15 +12,23 @@ form.addEventListener('submit', () => {
     name,
     content
   };
-  console.log(mew);
+
   form.style.display = 'none';
   loading.style.display = '';
-  fetch('http://localhost:5000/mews?origin=*', {
+  fetch('http://localhost:5000/mews', {
     method: 'POST',
 
     headers: {
       'Content-Type': 'application/json; charset=utf-8'
     },
     body: JSON.stringify(mew)
-  });
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((res) => {
+      console.log(res);
+      form.style.display = '';
+      loading.style.display = 'none';
+    });
 });
