@@ -3,8 +3,10 @@ const morgan = require('morgan');
 const app = express();
 const cors = require('cors');
 const monk = require('monk');
-const db = monk('localhost/Meower-Application');
+const db = monk(process.env.MONGO_URI, '/Meower-Application');
 const mews = db.get('mews');
+const rateLimit = require('express-rate-limit');
+const Filter = require('bad-words');
 
 app.use(express.json());
 app.use(cors());
@@ -15,16 +17,28 @@ app.get('/', (req, res) => {
   });
 });
 
+const filter = new Filter();
+
 function isValidMew(mew) {
   return mew.name && mew.name.toString().trim() !== '' && mew.content && mew.content.toString().trim() !== '';
 }
-
+app.get('/mews', (req, res) => {
+  mews.find().then((mews) => {
+    res.json(mews);
+  });
+});
+app.use(
+  rateLimit({
+    windowMs: 5 * 1000, // 15 minutes
+    max: 1 // limit each IP to 100 requests per windowMs
+  })
+);
 app.post('/mews', (req, res) => {
   if (isValidMew(req.body)) {
     //insert into db
     const mew = {
-      name: req.body.name.toString(),
-      content: req.body.content.toString(),
+      name: filter.clean(req.body.name.toString()),
+      content: filter.clean(req.body.content.toString()),
       created: new Date()
     };
     mews.insert(mew).then((createdMew) => {

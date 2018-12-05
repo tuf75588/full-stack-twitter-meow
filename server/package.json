@@ -11,9 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bad-words": "^3.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "express-rate-limit": "^3.3.2",
     "monk": "^6.0.6",
     "morgan": "^1.9.1"
   },
