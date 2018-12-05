@@ -1,67 +1,92 @@
-console.log(`hello world!`);
-const form = document.querySelector('.mew-form');
-const loading = document.querySelector('.loading');
-const mewSection = document.querySelector('.mews');
+console.log('Hello World!');
+
+const form = document.querySelector('form'); // grabbing an element on the page
+const errorElement = document.querySelector('.error-message');
+const loadingElement = document.querySelector('.loading');
+const mewsElement = document.querySelector('.mews');
 const API_URL =
   window.location.hostname === 'localhost' ? 'http://localhost:5000/mews' : 'https://server-qrsmfjgkqz.now.sh/mews';
-//show the spinner by default while we grab all of the mew objects from the database.
-loading.style.display = '';
+
+errorElement.style.display = 'none';
+
 listAllMews();
 
-form.addEventListener('submit', () => {
+form.addEventListener('submit', (event) => {
   event.preventDefault();
-  console.log('clicked!');
   const formData = new FormData(form);
   const name = formData.get('name');
   const content = formData.get('content');
-  const mew = {
-    name,
-    content
-  };
 
-  form.style.display = 'none';
-  loading.style.display = '';
-  fetch(API_URL, {
-    method: 'POST',
+  if (name.trim() && content.trim()) {
+    errorElement.style.display = 'none';
+    form.style.display = 'none';
+    loadingElement.style.display = '';
 
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8'
-    },
-    body: JSON.stringify(mew)
-  })
-    .then((response) => {
-      return response.json();
+    const mew = {
+      name,
+      content
+    };
+
+    fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(mew),
+      headers: {
+        'content-type': 'application/json'
+      }
     })
-    .then((res) => {
-      form.reset();
-      setTimeout(() => {
+      .then((response) => {
+        if (!response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType.includes('json')) {
+            return response.json().then((error) => Promise.reject(error.message));
+          } else {
+            return response.text().then((message) => Promise.reject(message));
+          }
+        }
+      })
+      .then(() => {
+        form.reset();
+        setTimeout(() => {
+          form.style.display = '';
+        }, 30000);
+        listAllMews();
+      })
+      .catch((errorMessage) => {
         form.style.display = '';
-      }, 5000);
-      listAllMews();
-    });
+        errorElement.textContent = errorMessage;
+        errorElement.style.display = '';
+        loadingElement.style.display = 'none';
+      });
+  } else {
+    errorElement.textContent = 'Name and content are required!';
+    errorElement.style.display = '';
+  }
 });
+
 function listAllMews() {
-  mewSection.innerHTML = '';
+  mewsElement.innerHTML = '';
   fetch(API_URL)
-    .then((response) => {
-      return response.json();
-    })
+    .then((response) => response.json())
     .then((mews) => {
       mews.reverse();
-      loading.style.display = 'none';
       mews.forEach((mew) => {
         const div = document.createElement('div');
+
         const header = document.createElement('h3');
+        header.textContent = mew.name;
+
         const contents = document.createElement('p');
+        contents.textContent = mew.content;
+
         const date = document.createElement('small');
         date.textContent = new Date(mew.created);
-        header.textContent = mew.name;
-        contents.textContent = mew.content;
+
         div.appendChild(header);
         div.appendChild(contents);
         div.appendChild(date);
-        mewSection.appendChild(div);
+
+        mewsElement.appendChild(div);
       });
-      loading.style.display = 'none';
+      loadingElement.style.display = 'none';
     });
 }

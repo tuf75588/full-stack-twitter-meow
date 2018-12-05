@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const app = express();
 const cors = require('cors');
 const monk = require('monk');
-const db = monk(process.env.MONGO_URI, '/Meower-Application');
+const db = monk(process.env.MONGO_URI || 'localhost/Meower-Application');
 const mews = db.get('mews');
 const rateLimit = require('express-rate-limit');
 const Filter = require('bad-words');
@@ -18,6 +18,7 @@ app.get('/', (req, res) => {
 });
 
 const filter = new Filter();
+app.enable('trust-proxy');
 
 function isValidMew(mew) {
   return mew.name && mew.name.toString().trim() !== '' && mew.content && mew.content.toString().trim() !== '';
