@@ -4,8 +4,11 @@ const form = document.querySelector('form'); // grabbing an element on the page
 const errorElement = document.querySelector('.error-message');
 const loadingElement = document.querySelector('.loading');
 const mewsElement = document.querySelector('.mews');
-const API_URL =
-  window.location.hostname === 'localhost' ? 'http://localhost:5000/mews' : 'https://server-qrsmfjgkqz.now.sh/mews';
+const loadMoreButton = document.querySelector('#loadMoreButton');
+let skip = 0;
+let limit = 10;
+
+const API_URL = `https://server-tbmnmbtjlt.now.sh/v2/mews`;
 
 errorElement.style.display = 'none';
 
@@ -27,7 +30,7 @@ form.addEventListener('submit', (event) => {
       content
     };
 
-    fetch(API_URL, {
+    fetch('https://server-tbmnmbtjlt.now.sh/mews', {
       method: 'POST',
       body: JSON.stringify(mew),
       headers: {
@@ -48,7 +51,7 @@ form.addEventListener('submit', (event) => {
         form.reset();
         setTimeout(() => {
           form.style.display = '';
-        }, 30000);
+        }, 3000);
         listAllMews();
       })
       .catch((errorMessage) => {
@@ -65,10 +68,9 @@ form.addEventListener('submit', (event) => {
 
 function listAllMews() {
   mewsElement.innerHTML = '';
-  fetch(API_URL)
+  fetch(`${API_URL}?skip=${skip}&limit=${limit}`)
     .then((response) => response.json())
-    .then((mews) => {
-      mews.reverse();
+    .then(({ mews }) => {
       mews.forEach((mew) => {
         const div = document.createElement('div');
 
@@ -87,6 +89,8 @@ function listAllMews() {
 
         mewsElement.appendChild(div);
       });
+
       loadingElement.style.display = 'none';
+      loadMoreButton.style.visibility = 'visible';
     });
 }
