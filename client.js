@@ -4,16 +4,19 @@ const form = document.querySelector('form'); // grabbing an element on the page
 const errorElement = document.querySelector('.error-message');
 const loadingElement = document.querySelector('.loading');
 const mewsElement = document.querySelector('.mews');
-const loadMoreButton = document.querySelector('#loadMoreButton');
+const loadMoreElement = document.querySelector('#loadMoreButton');
 let skip = 0;
 let limit = 10;
 
 const API_URL = `https://server-tbmnmbtjlt.now.sh/v2/mews`;
 
 errorElement.style.display = 'none';
-
+// document.addEventListener('scroll', () => {
+//   const rect = loadMoreElement.getBoundingClientRect();
+//   console.log(rect);
+// });
 listAllMews();
-
+loadMoreElement.addEventListener('click', loadMore);
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(form);
@@ -66,12 +69,20 @@ form.addEventListener('submit', (event) => {
   }
 });
 
-function listAllMews() {
-  mewsElement.innerHTML = '';
+function loadMore() {
+  skip += limit;
+  listAllMews(false);
+}
+
+function listAllMews(reset = true) {
+  if (reset) {
+    mewsElement.innerHTML = '';
+    skip = 0;
+  }
   fetch(`${API_URL}?skip=${skip}&limit=${limit}`)
     .then((response) => response.json())
-    .then(({ mews }) => {
-      mews.forEach((mew) => {
+    .then((result) => {
+      result.mews.forEach((mew) => {
         const div = document.createElement('div');
 
         const header = document.createElement('h3');
@@ -91,6 +102,11 @@ function listAllMews() {
       });
 
       loadingElement.style.display = 'none';
-      loadMoreButton.style.visibility = 'visible';
+      if (!result.meta.has_more) {
+        loadMoreElement.style.visibility = 'hidden';
+        finished = true;
+      } else {
+        loadMoreElement.style.visibility = 'visible';
+      }
     });
 }
